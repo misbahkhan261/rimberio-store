@@ -1,110 +1,239 @@
 """
 ============================================================================
 RIMBERIO — Executive Distribution Platform Layer
-Production Python Flask Automation Engine (app.py)
+Dynamic Auto Product & Image Scanner
+Production-Ready Flask Application
 ============================================================================
 """
-
+import json
+print("NEW APP.PY IS RUNNING")
+import logging
 import os
-from flask import Flask, jsonify, request
+
+
+print("APP VERSION 2 LOADED")
+from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
+
+import config
+from database import db
+from models import Order
+
+logging.basicConfig(level=getattr(logging, config.LOG_LEVEL, logging.INFO), format=config.LOG_FORMAT)
+logger = logging.getLogger("rimberio")
 
 app = Flask(__name__)
 
-# Enforce secure network access cross-origin orchestration
-CORS(app, resources={r"/api/*": {"origins": "*"}})
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///rimberio.db"
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-FLAT_DELIVERY_CHARGE = 399
+db.init_app(app)
+
+with app.app_context():
+    db.create_all()
+
+cors_origins = config.CORS_ORIGINS
+if cors_origins != "*":
+    cors_origins = [origin.strip() for origin in cors_origins.split(",")]
+
+CORS(app, resources={r"/api/*": {"origins": cors_origins}})
+
 
 def dynamic_inventory_builder():
     """
-    🤖 PURE AUTOMATION MACHINE: 
-    Automatically looks outside the backend folder into frontend/public/ 
-    to map and build live product nodes based on available images.
+    Scans the configured public directory for product images and builds
+    a product inventory list based on the product catalog configuration.
     """
-    # Navigating correctly to ../frontend/public folder structure
-    public_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'frontend', 'public'))
     products = []
-    
-    # Metadata anchor blueprint for naming and pricing conventions
-    meta_vault = {
-        "moon-lamp": {"name": "LUNA GLOW 3D Moon Lamp", "price": 2999, "compareAt": 4499, "tag": "LIFESTYLE"},
-        "crystal-ball": {"name": "NEBULA 3D Crystal Ball Orb Light", "price": 1299, "compareAt": 2499, "tag": "LIFESTYLE"},
-        "study-lamp": {"name": "LED Study Lamp with Pen Holder & Phone Stand", "price": 2399, "compareAt": 3999, "tag": "GADGETS"},
-        "bird-feeder": {"name": "Waterproof Outdoor Wild Bird Hanging Grains Feeder", "price": 1599, "compareAt": 2999, "tag": "LIFESTYLE"}
-    }
 
-    if os.path.exists(public_dir):
-        files = os.listdir(public_dir)
-        # Identify base items using the primary anchor naming pattern '-1.png'
-        for file in sorted(files):
-            if file.endswith(('.png', '.jpg', '.jpeg')) and '-1' in file:
-                key = file.split('-1')[0]
-                
-                # Dynamic fallback strategy for unexpected assets
-                meta = meta_vault.get(key, {
-                    "name": key.replace('-', ' ').upper() + " ELITE DROP",
-                    "price": 2500,
-                    "compareAt": 3500,
-                    "tag": "NEW ARRIVALS"
-                })
-                
-                # Secondary and tertiary rendering checks
-                ext = os.path.splitext(file)[1]
-                img2_name = f"{key}-2{ext}"
-                img3_name = f"{key}-3{ext}"
-                
-                products.append({
-                    "id": f"product-{key}",
-                    "name": meta["name"],
-                    "price": meta["price"],
-                    "compareAt": meta["compareAt"],
-                    "tag": meta["tag"],
-                    "img1": f"public/{file}",
-                    "img2": f"public/{img2_name}" if img2_name in files else f"public/{file}",
-                    "img3": f"public/{img3_name}" if img3_name in files else ""
-                })
+    if not os.path.exists(config.PUBLIC_DIR):
+        logger.warning("Public directory not found: %s", config.PUBLIC_DIR)
+        return products
+
+    try:
+        files = os.listdir(config.PUBLIC_DIR)
+    except OSError as e:
+        logger.error("Failed to list directory %s: %s", config.PUBLIC_DIR, e)
+        return products
+
+    for product_key, info in config.PRODUCT_CATALOG.items():
+        images = []
+        image_index = 1
+
+        while True:
+            image_found = False
+
+            for extension in config.SUPPORTED_IMAGE_EXTENSIONS:
+                filename = f"{product_key}-{image_index}{extension}"
+
+                if filename in files:
+                    images.append(
+                        f"{config.BASE_URL}/public/{filename}"
+                    )
+                    image_found = True
+                    break
+
+            if image_found:
+                image_index += 1
+            else:
+                break
+
+        if len(images) == 0:
+            continue
+
+        products.append({
+            "id": product_key,
+            "name": info["name"],
+            "price": info["price"],
+            "compareAt": info["compareAt"],
+            "tag": info["tag"],
+            "img1": images[0],
+            "images": images,
+        })
+
+    logger.info("Built inventory with %d products", len(products))
     return products
 
-# ============================================================================
-# ENDPOINTS ARCHITECTURE PIPELINE
-# ============================================================================
-@app.route('/api/products', methods=['GET'])
+
+@app.route("/public/<path:filename>", methods=["GET"])
+def serve_public_assets(filename):
+    """Serve static product assets with directory traversal protection."""
+    normalized = os.path.normpath(filename)
+    if ".." in normalized or normalized.startswith(("/", "\\")):
+        logger.warning("Blocked directory traversal attempt: %s", filename)
+        return jsonify({"success": False, "message": "Invalid file path."}), 400
+
+    if not os.path.isfile(os.path.join(config.PUBLIC_DIR, normalized)):
+        return jsonify({"success": False, "message": "File not found."}), 404
+
+    return send_from_directory(config.PUBLIC_DIR, normalized)
+
+
+@app.route("/api/products", methods=["GET"])
 def get_products():
+    """Return the dynamically built product inventory."""
     try:
-        live_catalog = dynamic_inventory_builder()
-        return jsonify({"success": True, "products": live_catalog}), 200
+        return jsonify({
+            "success": True,
+            "products": dynamic_inventory_builder(),
+        }), 200
+
     except Exception as e:
-        return jsonify({"success": False, "message": str(e)}), 500
+        print("DATABASE ERROR:", e)
 
-@app.route('/api/checkout', methods=['POST'])
-def process_checkout():
-    try:
-        payload = request.get_json() or {}
-        customer = payload.get('customer')
-        cart = payload.get('cart')
-        payment_method = payload.get('paymentMethod')
-
-        if not customer or not cart or not payment_method:
-            return jsonify({"success": False, "message": "Missing required data packets."}), 400
-
-        subtotal = sum(item['price'] * item['qty'] for item in cart)
-        final_total = subtotal + FLAT_DELIVERY_CHARGE
-
-        print(f"[TRANSACTION LOG] Safe Order Terminal Execution triggered: Rs {final_total}")
+        logger.error("Checkout failed: %s", e)
 
         return jsonify({
-            "success": True, 
-            "message": "Order streamed and logged successfully inside Python Local Layer.",
-            "cartTotal": final_total
+        "success": False,
+        "message": "Unable to process order. Please try again later.",
+        }), 500
+
+@app.route("/api/checkout", methods=["POST"])
+def process_checkout():
+    """Process checkout with validated cart data."""
+    print("PROCESS_CHECKOUT CALLED")
+    
+    try:
+        content_type = request.content_type or ""
+        if "application/json" not in content_type:
+            return jsonify({
+                "success": False,
+                "message": "Content-Type must be application/json.",
+            }), 400
+
+        payload = request.get_json(silent=True)
+        if payload is None:
+            return jsonify({
+                "success": False,
+                "message": "Invalid or missing JSON body.",
+            }), 400
+
+        cart = payload.get("cart")
+        if not isinstance(cart, list):
+            return jsonify({
+                "success": False,
+                "message": "Cart must be a list of items.",
+            }), 400
+
+        if len(cart) == 0:
+            return jsonify({
+                "success": False,
+                "message": "Cart is empty.",
+            }), 400
+
+        if len(cart) > config.MAX_CART_ITEMS:
+            return jsonify({
+                "success": False,
+                "message": f"Cart cannot exceed {config.MAX_CART_ITEMS} items.",
+            }), 400
+
+        subtotal = 0
+        for index, item in enumerate(cart):
+            if not isinstance(item, dict):
+                return jsonify({
+                    "success": False,
+                    "message": f"Cart item at index {index} is invalid.",
+                }), 400
+
+            price = item.get("price")
+            qty = item.get("qty")
+
+            if not isinstance(price, (int, float)) or price < 0 or price > config.MAX_PRICE:
+                return jsonify({
+                    "success": False,
+                    "message": f"Invalid price for cart item at index {index}.",
+                }), 400
+
+            if not isinstance(qty, int) or qty < 1 or qty > config.MAX_CART_ITEM_QTY:
+                return jsonify({
+                    "success": False,
+                    "message": f"Invalid quantity for cart item at index {index}. Must be 1-{config.MAX_CART_ITEM_QTY}.",
+                }), 400
+
+            subtotal += price * qty
+
+        final_total = subtotal + config.FLAT_DELIVERY_CHARGE
+        print("TEST DATABASE CODE")
+
+        order = Order(
+            customer_name=payload.get("customerName"),
+            customer_phone=payload.get("customerPhone"),
+            customer_address=payload.get("customerAddress"),
+            payment_method=payload.get("paymentMethod"),
+            total=final_total,
+            items=json.dumps(cart),
+            status="Pending",
+        )
+
+        db.session.add(order)
+        db.session.commit()
+
+        logger.info(
+            "Order #%s saved successfully.",
+            order.id
+        )
+
+        return jsonify({
+            "success": True,
+            "message": f"Thank you for your order, {order.customer_name}! We will notify you when your items are on the way.",
+            "orderId": order.id,
+            "cartTotal": final_total,
         }), 201
     except Exception as e:
-        return jsonify({"success": False, "message": "Internal processing collapse."}), 500
+        logger.error("Checkout failed: %s", e)
+        return jsonify({
+            "success": False,
+            "message": "Unable to process order. Please try again later.",
+        }), 500
 
-@app.route('/api/health', methods=['GET'])
-def health_check():
-    return jsonify({"success": True, "service": "Rimberio Engine Live", "runtime": "Python Flask Mode"}), 200
 
-if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port, debug=True)
+if __name__ == "__main__":
+    logger.info(
+        "Starting Rimberio server on %s:%s (env=%s, debug=%s)",
+        config.HOST, config.PORT, config.FLASK_ENV, config.DEBUG
+    )
+    app.run(
+        host=config.HOST,
+        port=config.PORT,
+        debug=config.DEBUG,
+    )
