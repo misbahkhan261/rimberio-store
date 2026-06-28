@@ -1,56 +1,248 @@
-import { ShoppingBag } from 'lucide-react';
-import { BRAND_NAME, NAV_LINKS } from '@/constants';
-import { useCart } from '@/context/CartContext';
+/*
+==========================================
+RIMBERIO PREMIUM NAVBAR
+Version: 1.0
+Status: FINAL
+Completed: June 2026
+
+⚠️ Do not modify design unless required.
+==========================================
+*/
+
+
+
+import { ShoppingBag } from "lucide-react";
+import { BRAND_NAME, NAV_LINKS } from "@/constants";
+import { useCart } from "@/context/CartContext";
 
 export default function Navbar() {
     const { cartCount, openDrawer } = useCart();
 
     return (
-        <header className="sticky top-[clamp(12px,2vw,20px)] z-[1100] self-center">
-            <div className="max-w-[1320px] w-[calc(100%-clamp(24px,6vw,80px))] h-[clamp(64px,5.5vw,82px)] my-[clamp(12px,2vw,20px)] mx-auto py-0 px-[clamp(16px,3vw,40px)] flex items-center justify-between bg-white/82 backdrop-blur-[18px] rounded-full shadow-sm transition-all duration-[220ms] ease-[cubic-bezier(0.16,1,0.3,1)] max-[768px]:w-[calc(100%-24px)] max-[768px]:px-4 max-[768px]:h-16 max-[768px]:my-3">
+        <header className="sticky top-5 z-[1200] flex justify-center px-5">
+
+            <div
+                className="
+                w-[96%]
+                max-w-[1760px]
+                h-[82px]
+                px-12
+                flex
+                items-center
+                justify-between
+                rounded-full
+                bg-white/90
+                backdrop-blur-[20px]
+                border
+                border-black/[0.03]
+                shadow-[0_10px_40px_rgba(0,0,0,0.06)]
+                overflow-visible
+                transition-all
+                duration-500
+                hover:shadow-[0_16px_60px_rgba(0,0,0,0.08)]
+            "
+            >
+
+                {/* LEFT */}
                 <a
                     href="#"
-                    className="font-display text-[clamp(1.8rem,4.2vw,2.6rem)] tracking-[clamp(4px,0.8vw,7px)] whitespace-nowrap shrink-0 text-ink-900 max-[768px]:text-[1.8rem] max-[768px]:tracking-[4px]"
                     onClick={(e) => {
                         e.preventDefault();
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                        window.scrollTo({
+                            top: 0,
+                            behavior: "smooth",
+                        });
                     }}
-                    aria-label="Rimberio — return to top"
+                   className="
+                   group-hover:w-20
+                    flex
+                    flex-col
+                    justify-center
+                    items-start
+                    h-full
+                    pl-8
+                    shrink-0
+                    select-none
+                    leading-none
+                    transition-transform
+                    duration-300
+                    hover:scale-[1.015]
+                "
                 >
-                    {BRAND_NAME}
+
+                    {/* Brand */}
+
+                    <span
+                        className="
+                            text-[42px]
+                            max-lg:text-[46px]
+                            max-md:text-[38px]
+                            tracking-[6px]
+                            max-md:tracking-[5px]
+                            text-ink-900
+                            font-medium
+                            leading-none
+                        "
+                        style={{
+                            fontFamily: "'Cormorant Garamond', serif",
+                        }}
+                    >
+                        {BRAND_NAME}
+                    </span>
+
+                    {/* Subtitle */}
+
+                    <span
+                        className="
+                            mt-[-7px]
+                            ml-6
+                            text-[20px]
+                            max-md:text-[18px]
+                            text-ink-500
+                        "
+                        style={{
+                            fontFamily: "'Allura', cursive",
+                        }}
+                    >
+                        curated living
+                    </span>
+
+                    {/* Gold Line */}
+                    <span
+                        className="
+                        mt-1
+                        ml-6
+                        h-[2px]
+                        w-8
+                        rounded-full
+                        bg-[#C6A15B]
+                        transition-all
+                        duration-500
+                        group-hover:w-12
+                    "
+                    />
+
                 </a>
 
-                <nav className="flex items-center justify-center flex-1 gap-[clamp(20px,4vw,55px)]" role="navigation" aria-label="Primary navigation">
-                    {NAV_LINKS.map((link) => (
-                        <a
-                            key={link.href}
-                            href={link.href}
-                            className="font-mono no-underline text-ink-600 uppercase tracking-[clamp(2px,0.4vw,4px)] text-[clamp(11px,1.1vw,14px)] relative transition-colors duration-[220ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:text-ink-900 after:content-[''] after:absolute after:left-0 after:bottom-[-6px] after:w-full after:h-px after:bg-ink-900 after:scale-x-0 after:origin-left after:transition-transform after:duration-[220ms] after:ease-[cubic-bezier(0.16,1,0.3,1)] hover:after:scale-x-100 max-[768px]:text-[11px] max-[768px]:tracking-[2px]"
-                        >
-                            {link.label}
-                        </a>
-                    ))}
+                {/* CENTER NAVIGATION */}
+
+               <nav
+                className="
+                flex
+                flex-1
+                justify-center
+                items-center
+                px-20
+            "
+        >
+
+                    <div className="mx-auto flex items-center gap-28
+                        max-xl:gap-20
+                        max-lg:gap-14
+                        max-md:hidden">
+
+                        {NAV_LINKS.map((link) => (
+
+                            <a
+                                key={link.href}
+                                href={link.href}
+                                className="
+                    relative
+                    uppercase
+                    text-[14px]
+                    max-lg:text-[13px]
+                    font-medium
+                    tracking-[5px]
+                    max-lg:tracking-[3px]
+                    text-ink-700
+                    font-mono
+
+                    transition-all
+                    duration-400
+                    ease-out
+
+                    hover:text-ink-900
+                    hover:tracking-[6px]
+
+                    after:absolute
+                    after:left-1/2
+                    after:-bottom-2
+                    after:h-[1px]
+                    after:w-0
+                    after:bg-black
+                    after:-translate-x-1/2
+                    after:transition-all
+                    after:duration-300
+
+                    hover:after:w-full
+                "
+                            >
+
+                                {link.label}
+
+                            </a>
+
+                        ))}
+
+                    </div>
+
                 </nav>
 
+                {/* Cart */}
+
                 <button
-                    className="flex items-center justify-center w-[clamp(42px,3.5vw,46px)] h-[clamp(42px,3.5vw,46px)] min-w-11 min-h-11 shrink-0 text-ink-900 transition-transform duration-[120ms] ease-[cubic-bezier(0.34,1.56,0.64,1)] active:scale-90 relative"
                     onClick={openDrawer}
                     aria-label="Open shopping bag"
-                    aria-haspopup="dialog"
+                    className="
+                        relative
+                        flex
+                        items-center
+                        justify-center
+                        w-12
+                        h-12
+                        rounded-full
+                        transition-all
+                        duration-300
+                        hover:bg-black/5
+                        hover:shadow-md
+                        hover:-translate-y-[1px]
+                        hover:scale-105
+                        
+                    "
                 >
-                    <ShoppingBag size={18} strokeWidth={1.7} aria-hidden="true" />
+                    <ShoppingBag
+                        size={22}
+                        strokeWidth={1.5}
+                    />
+
                     {cartCount > 0 && (
+
                         <span
-                            className="absolute -top-1 -right-1 bg-ink-900 text-white text-[10px] font-mono font-medium min-w-5 h-5 flex items-center justify-center rounded-full leading-none"
-                            aria-live="polite"
-                            aria-atomic="true"
-                            aria-label={`${cartCount} items in bag`}
+                            className="
+                                absolute
+                                -top-1
+                                -right-1
+                                w-5
+                                h-5
+                                rounded-full
+                                bg-ink-900
+                                text-white
+                                text-[10px]
+                                flex
+                                items-center
+                                justify-center
+                                font-medium
+                            "
                         >
                             {cartCount}
                         </span>
+
                     )}
+
                 </button>
+
             </div>
+
         </header>
     );
 }

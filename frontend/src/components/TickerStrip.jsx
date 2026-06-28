@@ -13,7 +13,7 @@ export default function TickerStrip() {
             <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-[#15110f] to-transparent z-[2] pointer-events-none" />
             <div
                 className="flex whitespace-nowrap hover:[animation-play-state:paused]"
-                style={{ animation: 'ticker-scroll 36s linear infinite' }}
+                style={{ animation:'ticker-scroll 24s linear infinite' }}
             >
                 {items.map((item, i) => (
                     <span
