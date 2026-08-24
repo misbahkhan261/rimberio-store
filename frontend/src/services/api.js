@@ -1,4 +1,4 @@
-const API_BASE = "http://127.0.0.1:5000";
+const API_BASE = "";
 
 // - Backend se saare products fetch karta hai aur unhein properly map/format karta hai
 export async function fetchProducts() {
