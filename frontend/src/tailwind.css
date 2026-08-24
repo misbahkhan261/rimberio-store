@@ -2,7 +2,7 @@
 
 @import 'tailwindcss';
 
-
+/* - Tailwind v4 Custom Theme Variables (Colors, Fonts, Shadows, aur Easing) */
 @theme {
     --color-ink-900: #1a1713;
     --color-ink-800: #2a2420;
@@ -45,7 +45,7 @@
 }
 
 /* ============================================================
-   BASE STYLES
+   BASE STYLES (Global Resets aur Settings)
    ============================================================ */
 *,
 *::before,
@@ -64,6 +64,7 @@ html {
     overflow-x: hidden;
 }
 
+/* - Agar user ne system mein reduced motion on kiya ho toh animations disable ho jayengi */
 @media (prefers-reduced-motion: reduce) {
     html {
         scroll-behavior: auto !important;
@@ -103,6 +104,7 @@ body {
     to { opacity: 1; }
 }
 
+/* - Background grain/noise overlay effect */
 body::before {
     content: '';
     position: fixed;
@@ -114,6 +116,7 @@ body::before {
     z-index: 9999;
 }
 
+/* - Jab modal ya drawer khula ho toh scroll lock karne ke liye class */
 body.scroll-locked {
     overflow: hidden;
     width: 100%;
@@ -181,7 +184,7 @@ button {
 }
 
 /* ============================================================
-   SWEETALERT CUSTOMIZATION
+   SWEETALERT CUSTOMIZATION (Alert popups ki styling)
    ============================================================ */
 .swal-rimberio.swal2-popup {
     font-family: var(--font-body) !important;

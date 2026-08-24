@@ -17,5 +17,8 @@
     "react-dom": "^19.2.7",
     "sweetalert2": "^11.17.2",
     "vite": "^8.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.0.1"
   }
 }

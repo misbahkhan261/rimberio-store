@@ -1,3 +1,4 @@
+// - Quantity ko sanitize karta hai taake value 1 se kam ya 99 se zyada na ho
 export function sanitizeQty(qty) {
     let parsed = parseInt(qty, 10);
     if (isNaN(parsed) || !isFinite(parsed) || parsed < 1) return 1;
@@ -5,6 +6,7 @@ export function sanitizeQty(qty) {
     return parsed;
 }
 
+// - LocalStorage ya external source se aane wale cart data ko clean aur secure banata hai
 export function sanitizeCart(rawCart) {
     if (!Array.isArray(rawCart)) return [];
     return rawCart
@@ -18,29 +20,35 @@ export function sanitizeCart(rawCart) {
         }));
 }
 
+// - Product par milne walay discount ki percentage calculate karta hai
 export function discountPercent(product) {
     if (!product || !product.compareAt || product.compareAt <= product.price) return 0;
     return Math.round(((product.compareAt - product.price) / product.compareAt) * 100);
 }
 
+// - Price ko standard format (e.g. Rs 5,000) mein convert karta hai
 export function formatPrice(price) {
     return `Rs ${(price || 0).toLocaleString()}`;
 }
 
+// - Customer name ki validation (kam az kam 2 characters)
 export function isValidName(name) {
     return name.trim().length >= 2;
 }
 
+// - Pakistani mobile number ki validation (03XXXXXXXXX ya +923XXXXXXXXX)
 export function isValidPhone(phone) {
     if (!phone) return false;
     const clean = phone.replace(/[\s\-\(\)\.\[\]]/g, '');
     return /^(03\d{9}|\+923\d{9}|923\d{9})$/.test(clean);
 }
 
+// - Delivery address ki length check karta hai (kam az kam 10 characters)
 export function isValidAddress(address) {
     return address.trim().length >= 10;
 }
 
+// - Credit/Debit card number ki validity check karne ka Luhn algorithm
 export function isValidLuhn(number) {
     const cleanNumber = number.replace(/\D/g, '');
     if (!cleanNumber || cleanNumber.length < 13 || cleanNumber.length > 19) return false;
@@ -58,6 +66,7 @@ export function isValidLuhn(number) {
     return sum % 10 === 0;
 }
 
+// - Card ki expiry date check karta hai ke card expire toh nahi ho gaya
 export function isValidExpiry(expiry) {
     const parts = expiry.split('/');
     if (parts.length !== 2) return false;
@@ -71,6 +80,7 @@ export function isValidExpiry(expiry) {
     return expDate >= now;
 }
 
+// - Card number type karte waqt har 4 digits ke baad space add karta hai (e.g. 0000 0000 0000 0000)
 export function formatCardNumber(value) {
     const digits = value.replace(/\D/g, '');
     let formatted = '';
@@ -81,6 +91,7 @@ export function formatCardNumber(value) {
     return formatted;
 }
 
+// - Expiry date mein automatically slash (' / ') format add karta hai (e.g. MM / YY)
 export function formatExpiry(value) {
     const digits = value.replace(/\D/g, '');
     if (digits.length > 2) {
@@ -89,6 +100,7 @@ export function formatExpiry(value) {
     return digits;
 }
 
+// - Agar product image load na ho sakay toh appropriate SVG fallback image return karta hai
 export function getImageFallback(src) {
     const srcLower = (src || '').toLowerCase();
     const isCube = srcLower.includes('cube') || srcLower.includes('product1') ||

@@ -1,4 +1,12 @@
+# Web framework aur CORS support
 Flask==3.0.2
 Flask-CORS==4.0.0
+
+# Environment variables loading (.env file parhne ke liye)
 python-dotenv==1.0.1
+
+# Production server setup
 gunicorn==21.2.0
+
+# Email verification sending service
+resend
